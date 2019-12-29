@@ -36,9 +36,9 @@ static int
 
 /*
 static int
-    s_tcp_send (int fd, const void *data, size_t len);
+    zmtp_tcp_send (int fd, const void *data, size_t len);
 static int
-    s_tcp_recv (int fd, void *buffer, size_t len);
+    zmtp_tcp_recv (int fd, void *buffer, size_t len);
 */
 
 //  --------------------------------------------------------------------------
@@ -239,46 +239,46 @@ s_negotiate (zmtp_channel_t *self)
         .mechanism = { 'N', 'U', 'L', 'L', '\0' }
     };
     //  Send protocol signature
-    if (s_tcp_send (s, outgoing.signature, sizeof outgoing.signature) == -1)
+    if (zmtp_tcp_send (s, outgoing.signature, sizeof outgoing.signature) == -1)
         goto io_error;
 
     //  Read the first byte.
     struct zmtp_greeting incoming;
-    if (s_tcp_recv (s, incoming.signature, 1) == -1)
+    if (zmtp_tcp_recv (s, incoming.signature, 1) == -1)
         goto io_error;
     assert (incoming.signature [0] == 0xff);
 
     //  Read the rest of signature
-    if (s_tcp_recv (s, incoming.signature + 1, 9) == -1)
+    if (zmtp_tcp_recv (s, incoming.signature + 1, 9) == -1)
         goto io_error;
     assert ((incoming.signature [9] & 1) == 1);
 
     //  Exchange major version numbers
-    if (s_tcp_send (s, outgoing.version, 1) == -1)
+    if (zmtp_tcp_send (s, outgoing.version, 1) == -1)
         goto io_error;
-    if (s_tcp_recv (s, incoming.version, 1) == -1)
+    if (zmtp_tcp_recv (s, incoming.version, 1) == -1)
         goto io_error;
 
     assert (incoming.version [0] == 3);
 
     //  Send the rest of greeting to the peer.
-    if (s_tcp_send (s, outgoing.version + 1, 1) == -1)
+    if (zmtp_tcp_send (s, outgoing.version + 1, 1) == -1)
         goto io_error;
-    if (s_tcp_send (s, outgoing.mechanism, sizeof outgoing.mechanism) == -1)
+    if (zmtp_tcp_send (s, outgoing.mechanism, sizeof outgoing.mechanism) == -1)
         goto io_error;
-    if (s_tcp_send (s, outgoing.as_server, sizeof outgoing.as_server) == -1)
+    if (zmtp_tcp_send (s, outgoing.as_server, sizeof outgoing.as_server) == -1)
         goto io_error;
-    if (s_tcp_send (s, outgoing.filler, sizeof outgoing.filler) == -1)
+    if (zmtp_tcp_send (s, outgoing.filler, sizeof outgoing.filler) == -1)
         goto io_error;
 
     //  Receive the rest of greeting from the peer.
-    if (s_tcp_recv (s, incoming.version + 1, 1) == -1)
+    if (zmtp_tcp_recv (s, incoming.version + 1, 1) == -1)
         goto io_error;
-    if (s_tcp_recv (s, incoming.mechanism, sizeof incoming.mechanism) == -1)
+    if (zmtp_tcp_recv (s, incoming.mechanism, sizeof incoming.mechanism) == -1)
         goto io_error;
-    if (s_tcp_recv (s, incoming.as_server, sizeof incoming.as_server) == -1)
+    if (zmtp_tcp_recv (s, incoming.as_server, sizeof incoming.as_server) == -1)
         goto io_error;
-    if (s_tcp_recv (s, incoming.filler, sizeof incoming.filler) == -1)
+    if (zmtp_tcp_recv (s, incoming.filler, sizeof incoming.filler) == -1)
         goto io_error;
 
     //  Send READY command
@@ -317,12 +317,12 @@ zmtp_channel_send (zmtp_channel_t *self, zmtp_msg_t *msg)
         frame_flags |= ZMTP_COMMAND_FLAG;
     if (zmtp_msg_size (msg) > 255)
         frame_flags |= ZMTP_LARGE_FLAG;
-    if (s_tcp_send (self->fd, &frame_flags, sizeof frame_flags) == -1)
+    if (zmtp_tcp_send (self->fd, &frame_flags, sizeof frame_flags) == -1)
         return -1;
 
     if (zmtp_msg_size (msg) <= 255) {
         const byte msg_size = zmtp_msg_size (msg);
-        if (s_tcp_send (self->fd, &msg_size, sizeof msg_size) == -1)
+        if (zmtp_tcp_send (self->fd, &msg_size, sizeof msg_size) == -1)
             return -1;
     }
     else {
@@ -336,10 +336,10 @@ zmtp_channel_send (zmtp_channel_t *self, zmtp_msg_t *msg)
         buffer [5] = msg_size >> 16;
         buffer [6] = msg_size >> 8;
         buffer [7] = msg_size;
-        if (s_tcp_send (self->fd, buffer, sizeof buffer) == -1)
+        if (zmtp_tcp_send (self->fd, buffer, sizeof buffer) == -1)
             return -1;
     }
-    if (s_tcp_send (self->fd, zmtp_msg_data (msg), zmtp_msg_size (msg)) == -1)
+    if (zmtp_tcp_send (self->fd, zmtp_msg_data (msg), zmtp_msg_size (msg)) == -1)
         return -1;
     return 0;
 }
@@ -356,18 +356,18 @@ zmtp_channel_recv (zmtp_channel_t *self)
     byte frame_flags;
     size_t size;
 
-    if (s_tcp_recv (self->fd, &frame_flags, 1) == -1)
+    if (zmtp_tcp_recv (self->fd, &frame_flags, 1) == -1)
         return NULL;
     //  Check large flag
     if ((frame_flags & ZMTP_LARGE_FLAG) == 0) {
         byte buffer [1];
-        if (s_tcp_recv (self->fd, buffer, 1) == -1)
+        if (zmtp_tcp_recv (self->fd, buffer, 1) == -1)
             return NULL;
         size = (size_t) buffer [0];
     }
     else {
         byte buffer [8];
-        if (s_tcp_recv (self->fd, buffer, sizeof buffer) == -1)
+        if (zmtp_tcp_recv (self->fd, buffer, sizeof buffer) == -1)
             return NULL;
         size = (uint64_t) buffer [0] << 56 |
                (uint64_t) buffer [1] << 48 |
@@ -380,7 +380,7 @@ zmtp_channel_recv (zmtp_channel_t *self)
     }
     byte *data = zmalloc (size);
     assert (data);
-    if (s_tcp_recv (self->fd, data, size) == -1) {
+    if (zmtp_tcp_recv (self->fd, data, size) == -1) {
         free (data);
         return NULL;
     }

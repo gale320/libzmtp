@@ -23,6 +23,16 @@ enum {
     ZMTP_MSG_COMMAND = 4,
 };
 
+//  Structure of our class
+
+struct _zmtp_msg_t {
+    byte flags;                 //  Flags byte for message
+    byte *data;                 //  Data part of message
+    size_t size;                //  Size of data in bytes
+    bool greedy;                //  Did we take ownership of data?
+};
+
+
 //  Opaque class structure
 typedef struct _zmtp_msg_t zmtp_msg_t;
 

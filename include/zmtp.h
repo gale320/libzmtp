@@ -30,6 +30,10 @@
 
 //  Public API classes
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "zmtp_msg.h"
 #include "zmtp_dealer.h"
 
@@ -47,5 +51,10 @@ enum zmtp_socket_type {
     ZMTP_XSUB,
     ZMTP_STREAM
 };
+
+
+bool zmtp_init();
+bool zmtp_deinit();
+
 
 #endif

@@ -12,14 +12,6 @@
 
 #include "zmtp_classes.h"
 
-//  Structure of our class
-
-struct _zmtp_msg_t {
-    byte flags;                 //  Flags byte for message
-    byte *data;                 //  Data part of message
-    size_t size;                //  Size of data in bytes
-    bool greedy;                //  Did we take ownership of data?
-};
 
 
 //  --------------------------------------------------------------------------

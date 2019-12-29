@@ -10,8 +10,8 @@
     =========================================================================
 */
 
-#include "zmtp_classes.h"
-#include  "zmtpnet.h"
+#include "zmtpinc.h"
+
 
 #include <poll.h>
 
@@ -74,7 +74,7 @@ s_echo_serv (void *arg)
             break;
         assert (rc > 0 || errno == EINTR);
         if (rc > 0) {
-            rc = s_tcp_send (fd, buf, rc);
+            rc = zmtp_tcp_send (fd, buf, rc);
             assert (rc == 0);
         }
     }
@@ -130,12 +130,12 @@ s_test_server (void *arg)
         assert (cmd == 'i' || cmd == 'o');
         if (cmd == 'i') {
             char buf [data_len];
-            const int rc = s_tcp_recv (fd, buf, data_len);
+            const int rc = zmtp_tcp_recv (fd, buf, data_len);
             assert (rc == 0);
             assert (memcmp (buf, data, data_len) == 0);
         }
         else {
-            const int rc = s_tcp_send (fd, data, data_len);
+            const int rc = zmtp_tcp_send (fd, data, data_len);
             assert (rc == 0);
         }
     }

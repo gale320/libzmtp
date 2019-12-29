@@ -22,5 +22,6 @@
 #include "zmtp_endpoint.h"
 #include "zmtp_ipc_endpoint.h"
 #include "zmtp_tcp_endpoint.h"
+#include "zmtp_udp_endpoint.h"
 
 #endif
