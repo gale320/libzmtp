@@ -19,3 +19,5 @@ src/stamp-h1
 *.lo
 *.o
 src/zmtp_selftest
+build/*
+.vscode

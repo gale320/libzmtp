@@ -15,7 +15,7 @@
 #define __ZBROKE_CLASSES_H_INCLUDED__
 
 //  External API
-#include "../include/zmtp.h"
+#include "zmtp.h"
 
 //  Internal API
 #include "zmtp_channel.h"
